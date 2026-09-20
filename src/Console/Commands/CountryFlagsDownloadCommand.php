@@ -9,18 +9,18 @@ use Illuminate\Support\Facades\Http;
 use Nurbekjummayev\LaravelCountry\Database\Seeders\CountrySeeder;
 
 /**
- * Paket ichidagi bayroq rasmlarini manbadan qayta yuklaydi.
+ * Downloads flag images from source into the package.
  *
- * Odatda kerak emas — rasmlar paket bilan birga keladi. Bu buyruq yangi davlat
- * qo'shilganda yoki bayroq o'zgarganda paketni yangilash uchun.
+ * Usually not needed — images are bundled with the package. This command
+ * is for updating the package when a new country is added or a flag changes.
  */
 class CountryFlagsDownloadCommand extends Command
 {
     protected $signature = 'country:flags:download
-        {--force : Mavjud fayllarni ham qayta yuklash}
-        {--only=* : Faqat shu kodlar (masalan --only=uz --only=kz)}';
+        {--force : Re-download existing files}
+        {--only=* : Only these codes (e.g. --only=uz --only=kz)}';
 
-    protected $description = 'Bayroq rasmlarini manbadan paket ichiga yuklaydi';
+    protected $description = 'Download flag images from source into the package';
 
     public function handle(CountrySeeder $seeder): int
     {
@@ -28,7 +28,7 @@ class CountryFlagsDownloadCommand extends Command
         $dir = CountrySeeder::flagsPath();
 
         if (! is_dir($dir) && ! mkdir($dir, 0o755, true) && ! is_dir($dir)) {
-            $this->error("Papka yaratilmadi: {$dir}");
+            $this->error("Failed to create directory: {$dir}");
 
             return self::FAILURE;
         }
@@ -76,17 +76,17 @@ class CountryFlagsDownloadCommand extends Command
         $bar->finish();
         $this->newLine(2);
 
-        $this->info("Yuklandi: {$downloaded}, o'tkazib yuborildi: {$skipped}.");
+        $this->info("Downloaded: {$downloaded}, skipped: {$skipped}.");
 
         if ($failed !== []) {
-            $this->warn('Yuklanmadi ('.count($failed).') — ISO 3166-1 da yo\'q kodlar bo\'lishi mumkin:');
+            $this->warn('Failed ('.count($failed).') — codes may not exist in ISO 3166-1:');
             foreach ($failed as $code => $status) {
                 $this->line("  {$code} → HTTP {$status}");
             }
         }
 
         $this->newLine();
-        $this->comment('Eslatma: countries.json dagi flag_path ni qo\'lda moslang, keyin country:seed.');
+        $this->comment('Note: Manually update flag_path in countries.json, then run country:seed.');
 
         return self::SUCCESS;
     }

@@ -2684,17 +2684,6 @@
         "is_active": true
     },
     {
-        "code": "XK",
-        "code_alpha3": "UNK",
-        "code_numeric": null,
-        "name_uz": "Kosovo",
-        "name_oz": "Косово",
-        "name_ru": "Республика Косово",
-        "name_en": "Kosovo",
-        "flag_path": "vendor/country/flags/xk.webp",
-        "is_active": true
-    },
-    {
         "code": "YE",
         "code_alpha3": "YEM",
         "code_numeric": "887",

@@ -8,23 +8,23 @@ use Nurbekjummayev\LaravelCountry\Models\Country;
 
 beforeEach(fn () => (new CountrySeeder)->run());
 
-it('barcha davlatlarni yozadi', function () {
-    expect(Country::count())->toBe(250);
+it('seeds all countries', function () {
+    expect(Country::count())->toBe(249);
 });
 
-it('qayta ishga tushirilganda dublikat yaratmaydi', function () {
+it('does not create duplicates when re-run', function () {
     (new CountrySeeder)->run();
 
-    expect(Country::count())->toBe(250);
+    expect(Country::count())->toBe(249);
 });
 
-it('alpha-2, alpha-3 va numeric kod bo\'yicha topadi', function () {
+it('finds by alpha-2, alpha-3, and numeric code', function () {
     expect(Country::findByCode('UZ')?->name_en)->toBe('Uzbekistan')
         ->and(Country::findByCode('UZB')?->code)->toBe('UZ')
         ->and(Country::findByCode('860')?->code)->toBe('UZ');
 });
 
-it('nomni joriy tilda qaytaradi', function () {
+it('returns name in current locale', function () {
     $uz = Country::findByCode('UZ');
 
     expect($uz->translatedName('ru'))->toBe('Узбекистан')
@@ -32,15 +32,15 @@ it('nomni joriy tilda qaytaradi', function () {
         ->and($uz->translatedName('xx'))->toBe($uz->name_uz);
 });
 
-it('route kaliti sifatida kodni ishlatadi', function () {
+it('uses code as route key', function () {
     expect((new Country)->getRouteKeyName())->toBe('code');
 });
 
-it('har bir davlatga flag_path yozadi', function () {
-    expect(Country::query()->whereNotNull('flag_path')->count())->toBe(250);
+it('assigns flag_path to every country', function () {
+    expect(Country::query()->whereNotNull('flag_path')->count())->toBe(249);
 });
 
-it('har bir flag_path uchun webp fayl mavjud', function () {
+it('has webp file for each flag_path', function () {
     $dir = CountrySeeder::flagsPath();
 
     $missing = Country::query()
@@ -53,42 +53,38 @@ it('har bir flag_path uchun webp fayl mavjud', function () {
     expect($missing)->toBe([]);
 });
 
-it('flag_url manzil qaytaradi, kodsizlarda null', function () {
+it('returns flag_url, null for missing paths', function () {
     expect(Country::findByCode('UZ')->flag_url)
         ->toEndWith('vendor/country/flags/uz.webp')
         ->and(Country::findByCode('SS')->flag_url)
         ->toEndWith('vendor/country/flags/ss.webp');
 });
 
-it('base_url sozlangan bo\'lsa o\'shani ishlatadi', function () {
-    config()->set('country.flags.base_url', 'https://cdn.epauzb.uz');
+it('uses base_url when configured', function () {
+    config()->set('country.flags.base_url', 'https://cdn.example.com');
 
     expect(Country::findByCode('UZ')->flag_url)
-        ->toBe('https://cdn.epauzb.uz/vendor/country/flags/uz.webp');
+        ->toBe('https://cdn.example.com/vendor/country/flags/uz.webp');
 });
 
-it('ISO ro\'yxati to\'liq — 250 ta, ISO bo\'lmagan yozuv yo\'q', function () {
-    expect(Country::query()->count())->toBe(250)
+it('has complete ISO list — 249 countries, no non-ISO entries', function () {
+    expect(Country::query()->count())->toBe(249)
         ->and(Country::query()->whereRaw("code GLOB '*[0-9]*'")->count())->toBe(0);
 });
 
-it('yetishmayotgan 9 ta davlat qo\'shilgan', function () {
+it('includes 8 added countries', function () {
     $added = Country::query()
-        ->whereIn('code', ['BL', 'BQ', 'CW', 'IO', 'MF', 'SS', 'SX', 'UM', 'XK'])
+        ->whereIn('code', ['BL', 'BQ', 'CW', 'IO', 'MF', 'SS', 'SX', 'UM'])
         ->pluck('code')->sort()->values()->all();
 
-    expect($added)->toBe(['BL', 'BQ', 'CW', 'IO', 'MF', 'SS', 'SX', 'UM', 'XK']);
+    expect($added)->toBe(['BL', 'BQ', 'CW', 'IO', 'MF', 'SS', 'SX', 'UM']);
 });
 
-it('eski ISO bo\'lmagan kodlar o\'chirilgan', function () {
+it('excludes old non-ISO codes', function () {
     expect(Country::query()->whereIn('code', ['Z0', 'Z7', 'Z9', 'Y0'])->count())->toBe(0);
 });
 
-it('Kosovo code_numeric siz saqlanadi', function () {
-    expect(Country::findByCode('XK')?->code_numeric)->toBeNull();
-});
-
-it('faqat kelishilgan ustunlar bor', function () {
+it('has only expected columns', function () {
     $columns = Schema::getColumnListing((new Country)->getTable());
     sort($columns);
 
@@ -98,20 +94,20 @@ it('faqat kelishilgan ustunlar bor', function () {
     ]);
 });
 
-it('scopeActive faqat faol davlatlarni qaytaradi', function () {
+it('scopeActive returns only active countries', function () {
     Country::query()->where('code', 'UZ')->update(['is_active' => false]);
 
     expect(Country::query()->active()->where('code', 'UZ')->exists())->toBeFalse()
-        ->and(Country::query()->active()->count())->toBe(249);
+        ->and(Country::query()->active()->count())->toBe(248);
 });
 
-it('is_active boolean sifatida qaytadi', function () {
+it('casts is_active as boolean', function () {
     $country = Country::findByCode('UZ');
 
     expect($country->is_active)->toBeTrue()->toBeBool();
 });
 
-it('fillable maydonlar to\'g\'ri ishlaydi', function () {
+it('allows mass assignment for fillable fields', function () {
     $country = Country::query()->create([
         'code' => 'ZZ',
         'code_alpha3' => 'ZZZ',
@@ -128,7 +124,7 @@ it('fillable maydonlar to\'g\'ri ishlaydi', function () {
         ->and($country->name_en)->toBe('Test EN');
 });
 
-it('toArray() da name va flag_url mavjud', function () {
+it('appends name and flag_url to array', function () {
     $array = Country::findByCode('UZ')->toArray();
 
     expect($array)->toHaveKeys(['name', 'flag_url']);

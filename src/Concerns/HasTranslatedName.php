@@ -7,7 +7,7 @@ namespace Nurbekjummayev\LaravelCountry\Concerns;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 
 /**
- * `name` atributi joriy til bo'yicha name_uz/name_oz/name_ru/name_en dan tanlanadi.
+ * The `name` attribute returns name_uz/name_oz/name_ru/name_en based on current locale.
  */
 trait HasTranslatedName
 {

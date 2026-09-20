@@ -9,8 +9,8 @@ use Nurbekjummayev\LaravelCountry\Models\Country;
 use RuntimeException;
 
 /**
- * Idempotent: `code` (ISO alpha-2) bo'yicha yangilaydi, dublikat yaratmaydi.
- * Qayta ishga tushirish xavfsiz.
+ * Idempotent: updates by `code` (ISO alpha-2), does not create duplicates.
+ * Safe to re-run.
  */
 class CountrySeeder extends Seeder
 {
@@ -41,7 +41,7 @@ class CountrySeeder extends Seeder
         $path = self::dataPath();
 
         if (! is_file($path)) {
-            throw new RuntimeException("Country ma'lumot fayli topilmadi: {$path}");
+            throw new RuntimeException("Country data file not found: {$path}");
         }
 
         /** @var list<array<string, mixed>> $rows */
@@ -56,7 +56,7 @@ class CountrySeeder extends Seeder
     }
 
     /**
-     * Paket ichidagi bayroq rasmlari papkasi.
+     * Path to flag images directory in the package.
      */
     public static function flagsPath(): string
     {

@@ -11,15 +11,15 @@ use Nurbekjummayev\LaravelCountry\Models\Country;
 class CountrySeedCommand extends Command
 {
     protected $signature = 'country:seed
-        {--fresh : Jadvalni tozalab, qaytadan to\'ldirish}';
+        {--fresh : Truncate the table and re-seed}';
 
-    protected $description = 'Davlatlar klassifikatorini (ISO 3166-1) bazaga yozadi';
+    protected $description = 'Seed countries classifier (ISO 3166-1) into the database';
 
     public function handle(CountrySeeder $seeder): int
     {
         if ($this->option('fresh')) {
             Country::query()->delete();
-            $this->warn('Jadval tozalandi.');
+            $this->warn('Table truncated.');
         }
 
         $count = count($seeder->rows());
@@ -29,7 +29,7 @@ class CountrySeedCommand extends Command
         });
 
         $this->newLine(2);
-        $this->info("Davlatlar yozildi: {$count} ta.");
+        $this->info("Countries seeded: {$count}.");
 
         return self::SUCCESS;
     }

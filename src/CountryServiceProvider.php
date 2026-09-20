@@ -38,7 +38,7 @@ class CountryServiceProvider extends ServiceProvider
                 CountrySeeder::dataPath() => database_path('data/country/countries.json'),
             ], 'country-data');
 
-            // Bayroq rasmlari: 241 ta webp (h240), ~0.4 MB.
+            // Flag images: 250 webp (h240), ~0.4 MB
             // php artisan vendor:publish --tag=country-flags
             $this->publishes([
                 CountrySeeder::flagsPath() => public_path(

@@ -5,11 +5,11 @@
 [![Total Downloads](https://img.shields.io/packagist/dt/nurbekjummayev/laravel-country.svg?style=flat-square)](https://packagist.org/packages/nurbekjummayev/laravel-country)
 [![License](https://img.shields.io/packagist/l/nurbekjummayev/laravel-country.svg?style=flat-square)](https://packagist.org/packages/nurbekjummayev/laravel-country)
 
-Davlatlar klassifikatori: migratsiya, seed ma'lumoti, **bayroq rasmlari** va Eloquent modeli.
+Country classifier for Laravel: migration, seed data, **flag images**, and Eloquent model.
 
-**250 davlat · ISO 3166-1 · Laravel 13 · PHP 8.3+**
+**249 countries · ISO 3166-1 · Laravel 13 · PHP 8.3+**
 
-## O'rnatish
+## Installation
 
 ```bash
 composer require nurbekjummayev/laravel-country
@@ -21,88 +21,88 @@ php artisan country:seed
 php artisan vendor:publish --tag=country-flags
 ```
 
-| Publish tagi | Nima chiqadi | Qayerga |
+| Publish Tag | Content | Destination |
 |---|---|---|
-| `country-flags` | 250 ta `.webp` bayroq | `public/vendor/country/flags/` |
+| `country-flags` | 249 `.webp` flags | `public/vendor/country/flags/` |
 | `country-config` | `country.php` | `config/` |
-| `country-migrations` | migratsiya | `database/migrations/` |
+| `country-migrations` | migration | `database/migrations/` |
 | `country-data` | `countries.json` | `database/data/country/` |
 
-## Ustunlar
+## Columns
 
-| Ustun | Turi | Izoh |
+| Column | Type | Description |
 |---|---|---|
 | `id` | `bigint` | Auto-increment |
 | `code` | `char(2)` | ISO 3166-1 alpha-2, unique |
 | `code_alpha3` | `char(3)` | ISO 3166-1 alpha-3, unique |
-| `code_numeric` | `char(3)` | ISO 3166-1 numeric, nullable (Kosovo'da yo'q) |
-| `name_uz` | `string` | O'zbekcha nomi |
-| `name_oz` | `string` | O'zbekcha (kirill) nomi |
-| `name_ru` | `string` | Ruscha nomi |
-| `name_en` | `string` | Inglizcha nomi |
-| `flag_path` | `string` | Bayroq fayl yo'li |
-| `is_active` | `boolean` | Faol/nofaol |
+| `code_numeric` | `char(3)` | ISO 3166-1 numeric, nullable  |
+| `name_uz` | `string` | Uzbek name (Latin) |
+| `name_oz` | `string` | Uzbek name (Cyrillic) |
+| `name_ru` | `string` | Russian name |
+| `name_en` | `string` | English name |
+| `flag_path` | `string` | Flag file path |
+| `is_active` | `boolean` | Active/inactive |
 | `timestamps` | | `created_at`, `updated_at` |
 
-## Foydalanish
+## Usage
 
 ```php
 use Nurbekjummayev\LaravelCountry\Models\Country;
 
-// Kod bo'yicha topish (alpha-2, alpha-3, numeric)
-Country::findByCode('UZ');    // 'UZB' va '860' ham ishlaydi
+// Find by code (alpha-2, alpha-3, or numeric)
+Country::findByCode('UZ');    // 'UZB' and '860' also work
 
-// Faqat faol davlatlar
-Country::active()->orderBy('name_uz')->get();
+// Only active countries
+Country::active()->orderBy('name_en')->get();
 
-// Bir nechta kod bo'yicha
+// Multiple codes
 Country::query()->code(['UZ', 'KZ', 'KG'])->get();
 ```
 
-### Tarjima va bayroq
+### Translation and Flags
 
 ```php
 $uz = Country::findByCode('UZ');
 
-$uz->name;                   // joriy tilda: "O'zbekiston"
+$uz->name;                   // Current locale: "Uzbekistan"
 $uz->translatedName('ru');   // "Узбекистан"
 $uz->flag_path;              // "vendor/country/flags/uz.webp"
 $uz->flag_url;               // "https://example.com/vendor/country/flags/uz.webp"
 ```
 
-### Blade'da
+### In Blade
 
 ```blade
 <img src="{{ $country->flag_url }}" alt="{{ $country->name }}" height="20" loading="lazy">
 ```
 
-### JSON javobda
+### JSON Response
 
-`name` va `flag_url` avtomatik qo'shiladi (`#[Appends]`):
+`name` and `flag_url` are automatically appended (`#[Appends]`):
 
 ```json
 {
   "code": "UZ",
-  "name": "O'zbekiston",
+  "name": "Uzbekistan",
   "flag_url": "https://example.com/vendor/country/flags/uz.webp"
 }
 ```
 
-## Bayroqlar
+## Flags
 
 | | |
 |---|---|
-| Format | **WebP**, balandligi 240px |
-| Soni | **250** — har bir davlatga |
-| Hajmi | **~0.44 MB** jami, o'rtacha 1.8 KB |
-| Manba | `flagcdn.com/h240/{code}.webp` |
-| Paketda | `database/Flags/{code}.webp` |
+| Format | **WebP**, 240px height |
+| Count | **249** — one per country |
+| Size | **~0.44 MB** total, ~1.8 KB average |
+| Source | `flagcdn.com/h240/{code}.webp` |
+| In package | `database/Flags/{code}.webp` |
 
-Rasmlar **paket ichida keladi** — ishlash paytida tashqi CDN'ga murojaat qilinmaydi.
+Flag images are **bundled with the package** — no external CDN calls at runtime.
 
-### CDN orqali berish
+### Serving from CDN
 
-Agar bayroqlarni alohida CDN'dan bersangiz:
+If you serve flags from a separate CDN:
 
 ```php
 // config/country.php
@@ -111,15 +111,15 @@ Agar bayroqlarni alohida CDN'dan bersangiz:
 ],
 ```
 
-### Bayroqlarni yangilash
+### Updating Flags
 
 ```bash
 php artisan country:flags:download [--force] [--only=uz]
 ```
 
-## Route-model binding
+## Route Model Binding
 
-Model `code` bo'yicha route'ga bog'lanadi:
+The model binds to routes by `code`:
 
 ```php
 // routes/web.php
@@ -127,23 +127,23 @@ Route::get('/countries/{country}', function (Country $country) {
     return $country;
 });
 
-// /countries/UZ → Country modeli
+// /countries/UZ → Country model
 ```
 
-## Servislararo qoida
+## Inter-service Convention
 
-> **Boshqa servisga `id` emas, `code` yuboring.**
+> **Send `code`, not `id`, to other services.**
 
-`id` — ichki avtoinkrement, har bir bazada boshqacha.
-`code` (ISO alpha-2) — barcha joyda bir xil, o'zgarmas.
+`id` is an internal auto-increment, different in each database.
+`code` (ISO alpha-2) is universal and immutable.
 
-## Testlar
+## Testing
 
 ```bash
-composer test    # 18 test
+composer test    # 18 tests
 composer lint
 ```
 
-## Litsenziya
+## License
 
-MIT litsenziyasi. Batafsil [LICENSE](LICENSE) faylida.
+MIT License. See [LICENSE](LICENSE) for details.

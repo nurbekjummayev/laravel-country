@@ -15,7 +15,7 @@ use Nurbekjummayev\LaravelCountry\Concerns\HasTranslatedName;
  * @property int $id
  * @property string $code ISO 3166-1 alpha-2
  * @property string $code_alpha3 ISO 3166-1 alpha-3
- * @property string|null $code_numeric ISO 3166-1 numeric (Kosovo'da yo'q)
+ * @property string $code_numeric ISO 3166-1 numeric
  * @property string $name_uz
  * @property string $name_oz
  * @property string $name_ru
@@ -55,7 +55,7 @@ class Country extends Model
     }
 
     /**
-     * Route-model binding tabiiy kalit bo'yicha: /countries/UZ
+     * Route model binding by natural key: /countries/UZ
      */
     public function getRouteKeyName(): string
     {
@@ -63,7 +63,7 @@ class Country extends Model
     }
 
     /**
-     * Nashr qilingan bayroqning to'liq manzili.
+     * Full URL to the published flag image.
      */
     protected function flagUrl(): Attribute
     {
@@ -88,7 +88,7 @@ class Country extends Model
     }
 
     /**
-     * @param  string|list<string>  $code  alpha-2, alpha-3 yoki numeric
+     * @param  string|list<string>  $code  alpha-2, alpha-3, or numeric
      */
     public function scopeCode(Builder $query, string|array $code): Builder
     {

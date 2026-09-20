@@ -7,10 +7,10 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Tarjima ustunlari
+    | Translation Columns
     |--------------------------------------------------------------------------
-    | app()->getLocale() qiymati shu xaritadan ustunga o'giriladi.
-    | Topilmasa `fallback` ishlatiladi.
+    | Maps app()->getLocale() to the corresponding column.
+    | Falls back to `fallback` if locale is not found.
     */
     'locales' => [
         'uz' => 'name_uz',
@@ -24,15 +24,15 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Bayroqlar
+    | Flags
     |--------------------------------------------------------------------------
-    | Bayroq rasmlari paket ichida keladi (241 ta webp, h240, ~0.4 MB) va
-    | `vendor:publish --tag=country-flags` bilan public papkaga chiqariladi.
+    | Flag images are bundled with the package (250 webp, h240, ~0.4 MB) and
+    | published to public folder via `vendor:publish --tag=country-flags`.
     |
-    | `public_path`  — nashr qilinadigan joy (public ichida).
-    | `base_url`     — null bo'lsa asset() ishlatiladi. Agar public papkangiz
-    |                  alohida CDN'dan berilsa, shu yerga o'sha manzilni yozing.
-    | `source`       — yangilash buyrug'i qaysi manbadan yuklaydi.
+    | `public_path` — destination inside public folder.
+    | `base_url`    — if null, asset() is used. Set this if your public
+    |                 folder is served from a separate CDN.
+    | `source`      — URL template for downloading flags.
     */
     'flags' => [
         'public_path' => env('COUNTRY_FLAGS_PATH', 'vendor/country/flags'),
