@@ -1,4 +1,9 @@
-# laravel-country
+# Laravel Country
+
+[![Tests](https://github.com/nurbekjummayev/laravel-country/actions/workflows/tests.yml/badge.svg)](https://github.com/nurbekjummayev/laravel-country/actions/workflows/tests.yml)
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/nurbekjummayev/laravel-country.svg?style=flat-square)](https://packagist.org/packages/nurbekjummayev/laravel-country)
+[![Total Downloads](https://img.shields.io/packagist/dt/nurbekjummayev/laravel-country.svg?style=flat-square)](https://packagist.org/packages/nurbekjummayev/laravel-country)
+[![License](https://img.shields.io/packagist/l/nurbekjummayev/laravel-country.svg?style=flat-square)](https://packagist.org/packages/nurbekjummayev/laravel-country)
 
 Davlatlar klassifikatori: migratsiya, seed ma'lumoti, **bayroq rasmlari** va Eloquent modeli.
 
@@ -6,17 +11,11 @@ Davlatlar klassifikatori: migratsiya, seed ma'lumoti, **bayroq rasmlari** va Elo
 
 ## O'rnatish
 
-```json
-{
-  "repositories": [
-    { "type": "path", "url": "../../packages/laravel-country" }
-  ],
-  "require": { "nurbekjummayev/laravel-country": "*" }
-}
+```bash
+composer require nurbekjummayev/laravel-country
 ```
 
 ```bash
-composer require nurbekjummayev/laravel-country
 php artisan migrate
 php artisan country:seed
 php artisan vendor:publish --tag=country-flags
@@ -31,41 +30,63 @@ php artisan vendor:publish --tag=country-flags
 
 ## Ustunlar
 
-```
-id
-code          char(2)   unique     ISO 3166-1 alpha-2
-code_alpha3   char(3)   unique     ISO 3166-1 alpha-3
-code_numeric  char(3)   unique, nullable   (Kosovo XK da yo'q)
-name_uz  name_oz  name_ru  name_en
-flag_path     "vendor/country/flags/uz.webp"
-is_active
-timestamps
-```
-
-Ataylab shu bilan cheklangan. Rasmiy nom, poytaxt, qit'a, valyuta, telefon kodi —
-kerak bo'lganda qo'shiladi.
+| Ustun | Turi | Izoh |
+|---|---|---|
+| `id` | `bigint` | Auto-increment |
+| `code` | `char(2)` | ISO 3166-1 alpha-2, unique |
+| `code_alpha3` | `char(3)` | ISO 3166-1 alpha-3, unique |
+| `code_numeric` | `char(3)` | ISO 3166-1 numeric, nullable (Kosovo'da yo'q) |
+| `name_uz` | `string` | O'zbekcha nomi |
+| `name_oz` | `string` | O'zbekcha (kirill) nomi |
+| `name_ru` | `string` | Ruscha nomi |
+| `name_en` | `string` | Inglizcha nomi |
+| `flag_path` | `string` | Bayroq fayl yo'li |
+| `is_active` | `boolean` | Faol/nofaol |
+| `timestamps` | | `created_at`, `updated_at` |
 
 ## Foydalanish
 
 ```php
 use Nurbekjummayev\LaravelCountry\Models\Country;
 
-Country::findByCode('UZ');        // 'UZB' va '860' ham ishlaydi
-Country::active()->orderBy('name_uz')->get();
-Country::query()->code(['UZ', 'KZ', 'KG'])->get();
+// Kod bo'yicha topish (alpha-2, alpha-3, numeric)
+Country::findByCode('UZ');    // 'UZB' va '860' ham ishlaydi
 
+// Faqat faol davlatlar
+Country::active()->orderBy('name_uz')->get();
+
+// Bir nechta kod bo'yicha
+Country::query()->code(['UZ', 'KZ', 'KG'])->get();
+```
+
+### Tarjima va bayroq
+
+```php
 $uz = Country::findByCode('UZ');
+
 $uz->name;                   // joriy tilda: "O'zbekiston"
 $uz->translatedName('ru');   // "Узбекистан"
 $uz->flag_path;              // "vendor/country/flags/uz.webp"
-$uz->flag_url;               // "https://.../vendor/country/flags/uz.webp"
+$uz->flag_url;               // "https://example.com/vendor/country/flags/uz.webp"
 ```
+
+### Blade'da
 
 ```blade
 <img src="{{ $country->flag_url }}" alt="{{ $country->name }}" height="20" loading="lazy">
 ```
 
-`name` va `flag_url` JSON javobga avtomatik qo'shiladi (`#[Appends]`).
+### JSON javobda
+
+`name` va `flag_url` avtomatik qo'shiladi (`#[Appends]`):
+
+```json
+{
+  "code": "UZ",
+  "name": "O'zbekiston",
+  "flag_url": "https://example.com/vendor/country/flags/uz.webp"
+}
+```
 
 ## Bayroqlar
 
@@ -75,77 +96,54 @@ $uz->flag_url;               // "https://.../vendor/country/flags/uz.webp"
 | Soni | **250** — har bir davlatga |
 | Hajmi | **~0.44 MB** jami, o'rtacha 1.8 KB |
 | Manba | `flagcdn.com/h240/{code}.webp` |
-| Paketda | `src/Database/Flags/{code}.webp` (kod kichik harfda) |
+| Paketda | `database/Flags/{code}.webp` |
 
 Rasmlar **paket ichida keladi** — ishlash paytida tashqi CDN'ga murojaat qilinmaydi.
 
-CDN'dan berish uchun (public papkangiz alohida domendan berilsa):
+### CDN orqali berish
+
+Agar bayroqlarni alohida CDN'dan bersangiz:
 
 ```php
-'flags' => ['base_url' => 'https://cdn.epauzb.uz'],   // config/country.php
+// config/country.php
+'flags' => [
+    'base_url' => 'https://cdn.example.com',
+],
 ```
 
-Yangilash: `php artisan country:flags:download [--force] [--only=uz]`
+### Bayroqlarni yangilash
 
-## Ro'yxat qanday tuzatilgan
-
-Dastlabki klassifikator **~2010-yilda muzlab qolgan** edi: 254 yozuvdan 241 tasi
-to'g'ri ISO kodi, 13 tasi esa ISO bo'lmagan eski yozuv edi.
-
-**Qo'shildi (9 ta):** `BL` `BQ` `CW` `IO` `MF` `SS` `SX` `UM` `XK`
-
-`SS` — Janubiy Sudan, 2011-yildan BMT a'zosi. `BQ`/`CW`/`SX` — 2010-yilda tarqatilgan
-Gollandiya Antil orollarining vorislari.
-
-**O'chirildi (13 ta).** Eski bazadagi havolalarni ko'chirish kerak bo'lsa, moslik jadvali:
-
-| Eski | ISO | | Eski | ISO |
-|---|---|---|---|---|
-| `Z0` Jonston atoll | `UM` | | `Z6` Buyuk Britaniya | `GB` |
-| `Z1` Makao | `MO` | | `Z7` AQSh – Delaver | — *(davlat emas)* |
-| `Z2` Svazilend | `SZ` *(Esvatini)* | | `Z8` Gollandiya Antil o. | `BQ`/`CW`/`SX` |
-| `Z3` Wake orollari | `UM` | | `Z9` Yugoslaviya | — *(tarqalgan)* |
-| `Z4` G'azo sektori | `PS` | | `Y0` Midway orollari | `UM` |
-| `Z5` Kanal orollari | `JE`/`GG` | | `Y1` Kerguelen | `TF` |
-| | | | `Y2` Britaniya Hind okeani hududi | `IO` |
-
-Natija: **250** — [mledoze/countries](https://github.com/mledoze/countries) ro'yxati bilan
-aynan mos. flagpedia'dagi 254 — 252 ta alpha-2 + `EU`/`UN` (tashkilot bayroqlari).
-
-### ⚠️ Ko'rib chiqish kerak
-
-9 ta yangi davlatning **uz/oz nomlari qo'lda tarjima qilingan** — tasdiqlash kerak:
-
+```bash
+php artisan country:flags:download [--force] [--only=uz]
 ```
-BL Sen-Bartelemi              MF Sen-Marten          SS Janubiy Sudan
-BQ Karib Niderlandiyasi       SX Sint-Marten         XK Kosovo
-CW Kyurasao                   UM AQShning kichik chekka orollari
-IO Britaniyaning Hind okeanidagi hududi
+
+## Route-model binding
+
+Model `code` bo'yicha route'ga bog'lanadi:
+
+```php
+// routes/web.php
+Route::get('/countries/{country}', function (Country $country) {
+    return $country;
+});
+
+// /countries/UZ → Country modeli
 ```
 
 ## Servislararo qoida
 
 > **Boshqa servisga `id` emas, `code` yuboring.**
 
-`id` — ichki avtoinkrement. `code` (ISO alpha-2) — o'zgarmas.
-Route-model binding ham kod bo'yicha: `/countries/UZ`.
-
-## API yo'llari (ixtiyoriy)
-
-Sukut bo'yicha o'chirilgan. `config/country.php`:
-
-```php
-'routes' => ['enabled' => true, 'prefix' => 'api/countries', 'middleware' => ['api']],
-```
-
-```
-GET /api/countries?q=uzb&only_active=1
-GET /api/countries/UZ
-```
+`id` — ichki avtoinkrement, har bir bazada boshqacha.
+`code` (ISO alpha-2) — barcha joyda bir xil, o'zgarmas.
 
 ## Testlar
 
 ```bash
-composer test    # 14 test
+composer test    # 18 test
 composer lint
 ```
+
+## Litsenziya
+
+MIT litsenziyasi. Batafsil [LICENSE](LICENSE) faylida.
